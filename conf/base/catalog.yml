@@ -1,0 +1,43 @@
+raw_match_ids:
+  type: polars.LazyPolarsDataset
+  file_format: parquet
+  filepath: "data/02_intermediate/raw_match_ids.parquet"
+
+processed_match_ids:
+  type: polars.LazyPolarsDataset
+  file_format: parquet
+  filepath: "data/02_intermediate/processed_match_ids.parquet"
+
+cricinfo_people:
+  type: polars.LazyPolarsDataset
+  file_format: csv
+  filepath: "data/02_intermediate/manual_input/espn_people_raw_data_2.csv"
+  load_args:
+    has_header: True
+
+people_raw:
+  type: polars.LazyPolarsDataset
+  file_format: csv
+  filepath: "data/02_intermediate/manual_input/people_raw_data.csv"
+  load_args:
+    has_header: True
+
+deliveries:
+  type: polars.LazyPolarsDataset
+  file_format: parquet
+  filepath: "data/03_preprocessed/deliveries.parquet"
+
+match_info:
+  type: polars.LazyPolarsDataset
+  file_format: parquet
+  filepath: "data/03_preprocessed/match_info.parquet"
+
+registry:
+  type: polars.LazyPolarsDataset
+  file_format: parquet
+  filepath: "data/03_preprocessed/registry.parquet"
+
+cricket_dataset:
+  type: polars.LazyPolarsDataset
+  file_format: parquet
+  filepath: "data/04_processed/cricket_dataset.parquet"

@@ -1,0 +1,11 @@
+cricsheet_url: "https://cricsheet.org/downloads/all.zip"
+raw_data_directory: "data/01_raw"
+intermediate_data_directory: "data/02_intermediate"
+preprocessed_data_directory: "data/03_preprocessed"
+
+raw_match_ids_path: "data/02_intermediate/raw_match_ids.parquet"
+processed_match_ids_path: "data/02_intermediate/processed_match_ids.parquet"
+
+deliveries_path: "data/03_preprocessed/deliveries.parquet"
+match_info_path: "data/03_preprocessed/match_info.parquet"
+registry_path: "data/03_preprocessed/registry.parquet"

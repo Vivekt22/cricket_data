@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "p03 create_cricket_dataset",
+            "type": "python",
+            "request": "launch",
+            "module": "kedro",
+            "console": "integratedTerminal",
+            "args": [
+                "run",
+                "--pipeline",
+                "p01_ingestion",
+                "--nodes",
+                "get_raw_match_ids"
+            ]
+        }
+    ]
+}
