@@ -66,3 +66,6 @@ pip install -r requirements.txt
 - **Session Storage**: `session_store.db` is used for pipeline session management.
 - **Pipeline Registry**: Pipelines are registered in `pipeline_registry.py`, making them accessible in Kedro.
 - **Custom Settings**: Project settings, including paths and pipeline configurations, are in `settings.py`.
+
+## Pipeline Viz
+![Kedro Pipeline Visualization](cricket_pipeline_viz.png)
