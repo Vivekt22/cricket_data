@@ -4,6 +4,8 @@ from pathlib import Path
 import polars as pl
 import yaml
 
+from cricket.utility_functions import convert_schema_dict
+
 
 def extract_registry(file: Path):
     try:
@@ -29,22 +31,57 @@ def extract_registry(file: Path):
     except Exception:
         return None
 
-def extract_all_registry(raw_data_files):
-    with Pool(cpu_count()) as pool:
-        all_registry = pool.map(extract_registry, raw_data_files)
-    non_empty_dfs = [df for df in all_registry if df is not None]
-    if non_empty_dfs:
-        return pl.concat(non_empty_dfs)
-    else:
-        return pl.DataFrame()
+def update_registry(params: dict, raw_match_ids_cleaned: pl.LazyFrame) -> pl.LazyFrame:
+    # Preprocessed registry from previous runs
 
-def main_extract_registry_raw_data(params: dict, raw_match_ids: pl.LazyFrame) -> pl.LazyFrame:
-    raw_data_directory = Path(params["raw_data_directory"])
-    raw_data_files = [
-        raw_data_directory.joinpath(f"{file}.yaml")
-        for file in
-        raw_match_ids.select(pl.col("match_id")).collect().to_series().to_list()
+    # Define the path to the preprocessed registry
+    preprocessed_directory = Path(params["preprocessed_directory"])
+    registry_path = preprocessed_directory.joinpath("registry.parquet")
+    registry_data_exists = registry_path.exists()
+
+    # Check if the preprocessed registry exist
+    # If they exist, load the preprocessed registry
+    # If they do not exist, create an empty LazyFrame
+    if registry_data_exists:
+        df_preprocessed_registry = pl.scan_parquet(registry_path)
+    else:
+        schema = convert_schema_dict(params["registry_schema"])
+        df_preprocessed_registry = pl.LazyFrame(schema=schema)
+
+    # If there are no new match IDs, return the preprocessed registry
+    if raw_match_ids_cleaned.drop_nulls().collect().height == 0:
+        return df_preprocessed_registry
+    
+    # Get the paths to the raw files
+    raw_directory = Path(params["raw_directory"])
+    raw_files = [
+        raw_directory.joinpath(file + ".yaml") 
+        for file 
+        in raw_match_ids_cleaned.select("match_id").collect().to_series().to_list()
     ]
-    final_registry_df = extract_all_registry(raw_data_files)
-    return final_registry_df
+
+    # Extract the new registry
+    with Pool(cpu_count()) as pool:
+        all_registry = pool.map(extract_registry, raw_files)
+    non_empty_dfs = [df for df in all_registry if df is not None]
+    # If there are new registry, concatenate the preprocessed registry with the new registry
+    if non_empty_dfs:
+        df_new_registry = pl.concat(non_empty_dfs).lazy()
+
+        is_new_match_id_in_preprocessed_match_id = (
+            df_new_registry.filter(pl.col("match_id").is_in(df_preprocessed_registry.select("match_id").unique().collect()))
+            .collect().height > 0
+        )
+    
+        if is_new_match_id_in_preprocessed_match_id:
+            raise ValueError("New match IDs already exist in the preprocessed registry.")
+        
+        df_registry = pl.concat([df_preprocessed_registry, df_new_registry])
+
+    # If there are no new registry, return the preprocessed registry
+    else:
+        df_registry = df_preprocessed_registry
+
+    return df_registry
+
 

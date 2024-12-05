@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "p03 create_cricket_dataset",
+            "name": "p02 get_match_ids_to_extract",
             "type": "python",
             "request": "launch",
             "module": "kedro",
@@ -10,9 +10,19 @@
             "args": [
                 "run",
                 "--pipeline",
-                "p01_ingestion",
+                "p02_extraction",
                 "--nodes",
-                "get_raw_match_ids"
+                "get_match_ids_to_extract"
+            ]
+        },
+        {
+            "name": "Full Run",
+            "type": "python",
+            "request": "launch",
+            "module": "kedro",
+            "console": "integratedTerminal",
+            "args": [
+                "run",
             ]
         }
     ]

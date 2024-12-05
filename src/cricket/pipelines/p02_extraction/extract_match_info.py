@@ -5,6 +5,7 @@ from pathlib import Path
 import polars as pl
 import yaml
 
+from cricket.utility_functions import convert_schema_dict
 
 def extract_match_info(file: Path):
     try:
@@ -80,39 +81,57 @@ def extract_match_info(file: Path):
     except Exception:
         return None
 
-def extract_all_match_info(raw_data_files):
-    with Pool(cpu_count()) as pool:
-        all_match_info = pool.map(extract_match_info, raw_data_files)
-    non_empty_dfs = [df for df in all_match_info if df is not None]
-    if non_empty_dfs:
-        return pl.concat(non_empty_dfs)
-    else:
-        return pl.DataFrame(schema={
-            'match_id': pl.Utf8,
-            'city': pl.Utf8,
-            'match_start_date': pl.Datetime("ns"),
-            'match_end_date': pl.Datetime("ns"),
-            'match_type': pl.Utf8,
-            'gender': pl.Utf8,
-            'umpire_1': pl.Utf8,
-            'umpire_2': pl.Utf8,
-            'win_by': pl.Utf8,
-            'win_margin': pl.Float64,
-            'winner': pl.Utf8,
-            'player_of_match': pl.Utf8,
-            'team1': pl.Utf8,
-            'team2': pl.Utf8,
-            'toss_decision': pl.Utf8,
-            'toss_winner': pl.Utf8,
-            'venue': pl.Utf8
-        })
 
-def main_extract_match_info_raw_data(params: dict, raw_match_ids: pl.LazyFrame) -> pl.LazyFrame:
-    raw_data_directory = Path(params["raw_data_directory"])
-    raw_data_files = [
-        raw_data_directory.joinpath(f"{file}.yaml")
-        for file in
-        raw_match_ids.select(pl.col("match_id")).collect().to_series().to_list()
+def update_match_info(params: dict, raw_match_ids_cleaned: pl.LazyFrame) -> pl.LazyFrame:
+    # Preprocessed match_info from previous runs
+
+    # Define the path to the preprocessed match_info
+    preprocessed_directory = Path(params["preprocessed_directory"])
+    match_info_path = preprocessed_directory.joinpath("match_info.parquet")
+    match_info_data_exists = match_info_path.exists()
+
+    # Check if the preprocessed match_info exist
+    # If they exist, load the preprocessed match_info
+    # If they do not exist, create an empty LazyFrame
+    if match_info_data_exists:
+        df_preprocessed_match_info = pl.scan_parquet(match_info_path)
+    else:
+        schema = convert_schema_dict(params["match_info_schema"])
+        df_preprocessed_match_info = pl.LazyFrame(schema=schema)
+
+    # If there are no new match IDs, return the preprocessed match_info
+    if raw_match_ids_cleaned.drop_nulls().collect().height == 0:
+        return df_preprocessed_match_info
+    
+    # Get the paths to the raw files
+    raw_directory = Path(params["raw_directory"])
+    raw_files = [
+        raw_directory.joinpath(file + ".yaml") 
+        for file 
+        in raw_match_ids_cleaned.select("match_id").collect().to_series().to_list()
     ]
-    final_match_info_df = extract_all_match_info(raw_data_files)
-    return final_match_info_df
+
+    # Extract the new match_info
+    with Pool(cpu_count()) as pool:
+        all_match_info = pool.map(extract_match_info, raw_files)
+    non_empty_dfs = [df for df in all_match_info if df is not None]
+    # If there are new match_info, concatenate the preprocessed match_info with the new match_info
+    if non_empty_dfs:
+        df_new_match_info = pl.concat(non_empty_dfs).lazy()
+
+        is_new_match_id_in_preprocessed_match_id = (
+            df_new_match_info.filter(pl.col("match_id").is_in(df_preprocessed_match_info.select("match_id").unique().collect()))
+            .collect().height > 0
+        )
+
+        if is_new_match_id_in_preprocessed_match_id:
+            raise ValueError("New match IDs already exist in the preprocessed match_info.")
+        
+        df_match_info = pl.concat([df_preprocessed_match_info.cast(schema), df_new_match_info.cast(schema)])
+
+    # If there are no new match_info, return the preprocessed match_info
+    else:
+        df_match_info = df_preprocessed_match_info
+
+    return df_match_info
+

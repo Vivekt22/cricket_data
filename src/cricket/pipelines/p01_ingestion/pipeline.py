@@ -1,23 +1,22 @@
 from kedro.pipeline import Pipeline, node, pipeline
 
-from .fetch_new_data import fetch_new_data
-from .get_raw_match_ids import get_raw_match_ids
+from .ingestion import download_raw_files, remove_raw_files_previously_staged
 
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
         [
             node(
-                func=fetch_new_data,
-                inputs="parameters",
-                outputs=None,
-                name="fetch_new_data"
-            ),
-            node(
-                func=get_raw_match_ids,
+                func=download_raw_files,
                 inputs="parameters",
                 outputs="raw_match_ids",
-                name="get_raw_match_ids"
+                name="download_yaml_files",
+            ),
+            node(
+                func=remove_raw_files_previously_staged,
+                inputs=["parameters", "raw_match_ids"],
+                outputs="raw_match_ids_cleaned",
+                name="remove_raw_files_previously_staged"
             )
         ]
     )

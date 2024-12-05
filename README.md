@@ -10,7 +10,7 @@ This project processes cricket match data, starting from ingestion, through data
 
 ### 1. **p01_ingestion**: Ingests raw match data
    - **fetch_new_data.py**: Fetches new match data from source.
-   - **get_raw_match_ids.py**: Identifies unique match IDs to process.
+   - **get_raw_staged_match_ids.py**: Identifies unique match IDs to process.
 
 ### 2. **p02_extraction**: Extracts and organizes raw data into structured format
    - **extract_deliveries.py**: Extracts delivery data from match files.

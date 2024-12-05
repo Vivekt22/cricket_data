@@ -76,3 +76,9 @@ ignore = ["E501"]  # Ruff format takes care of line-too-long
 
 [tool.kedro_telemetry]
 project_id = "2b7a50178a724f1f87b11bd23d53aefa"
+
+[tool.jupysql.SqlMagic]
+autopandas = false
+autopolars = true
+feedback = false
+displaycon = false

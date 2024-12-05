@@ -1,11 +1,56 @@
 cricsheet_url: "https://cricsheet.org/downloads/all.zip"
-raw_data_directory: "data/01_raw"
-intermediate_data_directory: "data/02_intermediate"
-preprocessed_data_directory: "data/03_preprocessed"
 
-raw_match_ids_path: "data/02_intermediate/raw_match_ids.parquet"
-processed_match_ids_path: "data/02_intermediate/processed_match_ids.parquet"
+raw_directory: "data/00_raw"
+staged_directory: "data/01_staged"
+
+intermediate_directory: "data/02_intermediate"
+preprocessed_directory: "data/03_preprocessed"
+
+processed_directory: "data/04_processed"
 
 deliveries_path: "data/03_preprocessed/deliveries.parquet"
 match_info_path: "data/03_preprocessed/match_info.parquet"
 registry_path: "data/03_preprocessed/registry.parquet"
+
+registry_schema: {
+  match_id: String, 
+  person_name: String, 
+  person_id: String
+}
+
+match_info_schema: {
+  match_id: String,
+  city: String,
+  match_start_date: Datetime,
+  match_end_date: Datetime,
+  match_type: String,
+  gender: String,
+  umpire_1: String,
+  umpire_2: String,
+  win_by: String,
+  win_margin: Float64,
+  winner: String,
+  player_of_match: String,
+  team1: String,
+  team2: String,
+  toss_decision: String,
+  toss_winner: String,
+  venue: String
+}
+
+delivery_schema: {
+  match_id: String,
+  innings: String,
+  batting_team: String,
+  bowling_team: String,
+  declared: Int8,
+  delivery: Float64,
+  batter: String,
+  bowler: String,
+  non_striker: String,
+  batter_runs: Int64,
+  extra_runs: Int64,
+  total_runs: Int64,
+  wicket_type: String,
+  player_out: String
+}

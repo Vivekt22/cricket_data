@@ -3,10 +3,10 @@ raw_match_ids:
   file_format: parquet
   filepath: "data/02_intermediate/raw_match_ids.parquet"
 
-processed_match_ids:
+raw_match_ids_cleaned:
   type: polars.LazyPolarsDataset
   file_format: parquet
-  filepath: "data/02_intermediate/processed_match_ids.parquet"
+  filepath: "data/02_intermediate/raw_match_ids_cleaned.parquet"
 
 cricinfo_people:
   type: polars.LazyPolarsDataset
@@ -36,6 +36,16 @@ registry:
   type: polars.LazyPolarsDataset
   file_format: parquet
   filepath: "data/03_preprocessed/registry.parquet"
+
+team_league_mapping:
+  type: polars.LazyPolarsDataset
+  file_format: csv
+  filepath: "data/02_intermediate/manual_input/team_league_map.csv"
+
+team_name_correction:
+  type: polars.LazyPolarsDataset
+  file_format: csv
+  filepath: "data/02_intermediate/manual_input/team_name_correction.csv"
 
 cricket_dataset:
   type: polars.LazyPolarsDataset
